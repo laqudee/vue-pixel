@@ -1,58 +1,71 @@
 <template>
+  <!-- 图片上传、解析与下载 -->
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <input type="file" ref="filebtn2" @click="clickFile">
+    <div ref="imgdom"></div>
+    <button ref="download" @click="downloadFile">下载文件</button>
   </div>
 </template>
 
 <script>
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
-  }
+  data() {
+    return {
+      filedom2: null,
+      fileName: '',
+      fileType: '',
+    }
+  },
+  methods: {
+    clickFile() {
+      let that = this;
+      this.filedom2 = this.$refs.filebtn2;
+      this.filedom2.addEventListener("change", function(e) {
+        let f = this.files[0]
+        console.log('f: ', f);
+        that.fileName = f.name
+        that.fileType = f.type 
+        if (!f.type.match("image.*")) {
+          return;
+        }
+        let reader = new FileReader();
+        reader.onload = function(event) {
+          let bytes = this.result;
+          let img = new Image();
+          img.src = "" + bytes;
+          img.id = "imgs";
+          img.style.width = '100px';
+          img.style.height = '100px';
+          img.onload = function () {
+            that.$refs.imgdom.appendChild(img)
+          }
+        }
+        reader.readAsDataURL(f);
+      })
+    },
+    downloadFile(){
+      if (!this.fileName) {
+        alert('请先上传一个图片！')
+        return
+      }
+      let MIME_TYPE = this.fileType;
+      let imgs = document.getElementById("imgs")
+      let imgURL = imgs.src;
+      var link = document.createElement('a')
+      link.download = this.fileName
+      link.href = imgURL
+      link.dataset.downloadurl = [MIME_TYPE, link.download, link.href].join(':')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  },
+  
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+
 </style>
